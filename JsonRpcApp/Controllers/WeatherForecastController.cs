@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using SphaeraJsonRpc.Protocol;
+using SphaeraJsonRpc.Protocol.ErrorMessage;
 using SphaeraJsonRpc.Protocol.Interfaces;
 using SphaeraJsonRpc.Protocol.ModelMessage;
 using SphaeraJsonRpc.Protocol.ModelMessage.ErrorMessage;
@@ -21,6 +22,7 @@ namespace JsonRpcApp.Controllers
     {
         private readonly ILogger<WeatherForecastController> _logger;
         private readonly IJsonRpc _jsonRpc;
+        private readonly string[] methods = new string[] {"sum"};
 
         public WeatherForecastController(ILogger<WeatherForecastController> logger, IJsonRpc jsonRpc)
         {
@@ -68,8 +70,12 @@ namespace JsonRpcApp.Controllers
             var method = requst.Method;
             var version = requst.Version;
             var id = requst.RequestId;
+
+            if (methods.Contains(method))
+                return Ok(JsonConvert.SerializeObject(new JsonRpcResult(){RequestId = id, Version = version, Result = new string[] {"sdfsd","sfsdf"}}));
             
-            return Ok(dataMessage);
+            
+            return BadRequest(JsonConvert.SerializeObject(new JsonRpcError(){RequestId = id, Version = version, Error = new ErrorDetail(){ Code = JsonRpcErrorCode.MethodNotFound, Message = "Method not found"}}));
         }
     }
 }
