@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SphaeraJsonRpc.Protocol.ModelMessage
 {
@@ -15,5 +17,7 @@ namespace SphaeraJsonRpc.Protocol.ModelMessage
         
         [JsonIgnore]
         public override EnumTypeMessage TypeMessage => EnumTypeMessage.Request;
+        
+        public override List<T> GetPayload<T>() => ((JArray)Params).ToObject<List<T>>();
     }
 }

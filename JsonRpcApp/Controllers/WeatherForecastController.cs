@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using SphaeraJsonRpc.Protocol;
 using SphaeraJsonRpc.Protocol.Interfaces;
 using SphaeraJsonRpc.Protocol.ModelMessage;
@@ -51,6 +54,22 @@ namespace JsonRpcApp.Controllers
                 return BadRequest(((JsonRpcError)res).ToString());
 
             return Ok("Нет данных");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ReciveMessage()
+        {
+            using var reader = new StreamReader(HttpContext.Request.Body);
+            var reciveMessage = await reader.ReadToEndAsync();
+
+            var requst = JsonConvert.DeserializeObject<JsonRpcRequest>(reciveMessage);
+            
+            var dataMessage = requst.GetPayload<WeatherForecast>();
+            var method = requst.Method;
+            var version = requst.Version;
+            var id = requst.RequestId;
+            
+            return Ok(dataMessage);
         }
     }
 }
