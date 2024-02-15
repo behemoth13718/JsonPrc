@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using SphaeraJsonRpc.Extensions;
 using SphaeraJsonRpc.Protocol;
 
 namespace JsonRpcApp
@@ -42,6 +43,8 @@ namespace JsonRpcApp
                         License = new OpenApiLicense { Name = "GNU GPL v3.0", Url = new Uri("https://choosealicense.com/licenses/gpl-3.0/") }
                     });
             });
+
+            services.AddJsonRpcClient<IRpcService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,7 +56,7 @@ namespace JsonRpcApp
             }
 
             app.UseHttpsRedirection();
-
+            app.UseJsonRpc<RpcServerService>("/rpc1srv");
             app.UseRouting();
 
             app.UseAuthorization();
