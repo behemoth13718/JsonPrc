@@ -56,7 +56,7 @@ namespace JsonRpcApp
             }
 
             app.UseHttpsRedirection();
-            ///
+            
             app.UseJsonRpc<RpcServerService>("/rpc1srv");
             app.UseRouting();
 
