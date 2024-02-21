@@ -13,6 +13,7 @@ using SphaeraJsonRpc.Protocol.ErrorMessage;
 using SphaeraJsonRpc.Protocol.Interfaces;
 using SphaeraJsonRpc.Protocol.ModelMessage;
 using SphaeraJsonRpc.Protocol.ModelMessage.ErrorMessage;
+using SphaeraJsonRpc.Protocol.ModelMessage.RequestMessage;
 
 namespace JsonRpcApp.Controllers
 {
@@ -64,7 +65,7 @@ namespace JsonRpcApp.Controllers
             using var reader = new StreamReader(HttpContext.Request.Body);
             var reciveMessage = await reader.ReadToEndAsync();
 
-            var requst = JsonConvert.DeserializeObject<JsonRpcRequest>(reciveMessage);
+            var requst = JsonConvert.DeserializeObject<JsonRpcRequestServer>(reciveMessage);
             
             var dataMessage = requst.GetPayload<WeatherForecast>();
             var method = requst.Method;

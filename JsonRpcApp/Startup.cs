@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -11,8 +13,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using SphaeraJsonRpc.Extensions;
+using SphaeraJsonRpc.Middlewares;
 using SphaeraJsonRpc.Protocol;
+using SphaeraJsonRpc.Protocol.ModelMessage;
 
 namespace JsonRpcApp
 {
@@ -44,7 +49,7 @@ namespace JsonRpcApp
                     });
             });
 
-            services.AddJsonRpcClient<IRpcService>();
+                //services.AddTransient<IRpcService, RpcServerService>(); //AddJsonRpcClient<IRpcService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,8 +62,10 @@ namespace JsonRpcApp
 
             app.UseHttpsRedirection();
             //
-            app.UseJsonRpc<RpcServerService>("/rpc1srv");
+            
             app.UseRouting();
+            
+            
 
             app.UseAuthorization();
             
@@ -70,6 +77,8 @@ namespace JsonRpcApp
             });
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseMiddleware<JsonRpcMiddleware<RpcServerService>>("/json-rpc-server");
+            //app.UseJsonRpc<RpcServerService>("/rpc1srv");
         }
     }
 }

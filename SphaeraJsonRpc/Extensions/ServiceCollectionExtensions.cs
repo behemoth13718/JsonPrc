@@ -6,7 +6,7 @@ namespace SphaeraJsonRpc.Extensions
     {
         public static IServiceCollection AddJsonRpcClient<T>(this IServiceCollection services) where T : class
         {
-            //do something
+            services.AddTransient<T>();
 
             return services;
         }

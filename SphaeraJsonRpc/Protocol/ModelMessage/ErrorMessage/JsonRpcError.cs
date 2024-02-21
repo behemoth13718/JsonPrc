@@ -5,10 +5,10 @@ namespace SphaeraJsonRpc.Protocol.ModelMessage.ErrorMessage
 {
     public class JsonRpcError : JsonRpcMessage
     {
-        [JsonProperty("error", Required = Required.Always, Order = 2)]
+        [JsonProperty("error", Required = Required.Always, Order = 1)]
         public ErrorDetail Error { get; set; }
 
-        [JsonProperty("id", Required = Required.Always, Order = 1)]
+        [JsonProperty("id", Required = Required.Always, Order = 2)]
         public object RequestId { get; set; }
         
         [JsonIgnore]

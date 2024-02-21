@@ -33,7 +33,7 @@ namespace SphaeraJsonRpc.Protocol
 
         public async Task<JsonRpcMessage> SendMessageAsync(string method, IReadOnlyList<object> @params, RequestId idMessage)
         {
-            var request =  _requestMessageFactory.CreateRequestMessage(method, @params, idMessage); 
+            var request =  _requestMessageFactory.CreateRequestClientMessage(method, @params, idMessage); 
             
             var requestBody = JsonConvert.SerializeObject(request);
             var buffer = Encoding.UTF8.GetBytes(requestBody);
