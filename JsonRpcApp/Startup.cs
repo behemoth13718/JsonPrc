@@ -34,7 +34,7 @@ namespace JsonRpcApp
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddJsonRpc();
+            //services.AddJsonRpc();
             services.AddSwaggerGen(x =>
             {
                 x.SwaggerDoc("v1",

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using SphaeraJsonRpc.Protocol.ErrorMessage;
 using SphaeraJsonRpc.Protocol.Interfaces;
 using SphaeraJsonRpc.Protocol.ModelMessage;
 using SphaeraJsonRpc.Protocol.ModelMessage.ErrorMessage;
