@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SphaeraJsonRpc.Protocol.ErrorMessage;
 using SphaeraJsonRpc.Protocol.Interfaces;
 using SphaeraJsonRpc.Protocol.ModelMessage;
 using SphaeraJsonRpc.Protocol.ModelMessage.ErrorMessage;

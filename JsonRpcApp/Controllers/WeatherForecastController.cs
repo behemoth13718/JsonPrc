@@ -6,10 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
-using SphaeraJsonRpc.Protocol;
-using SphaeraJsonRpc.Protocol.ErrorMessage;
+using SphaeraJsonRpc.Protocol.Enums;
 using SphaeraJsonRpc.Protocol.Interfaces;
 using SphaeraJsonRpc.Protocol.ModelMessage;
 using SphaeraJsonRpc.Protocol.ModelMessage.ErrorMessage;
@@ -76,7 +73,7 @@ namespace JsonRpcApp.Controllers
                 return Ok(JsonConvert.SerializeObject(new JsonRpcResult(){RequestId = id, Version = version, Result = new string[] {"sdfsd","sfsdf"}}));
             
             
-            return BadRequest(JsonConvert.SerializeObject(new JsonRpcError(){RequestId = id, Version = version, Error = new ErrorDetail(){ Code = JsonRpcErrorCode.MethodNotFound, Message = "Method not found"}}));
+            return BadRequest(JsonConvert.SerializeObject(new JsonRpcError(){RequestId = id, Version = version, Error = new ErrorDetail(){ Code = EnumJsonRpcErrorCode.MethodNotFound, Message = "Method not found"}}));
         }
     }
 }

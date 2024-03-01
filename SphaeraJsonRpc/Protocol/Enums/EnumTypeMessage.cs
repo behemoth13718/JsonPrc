@@ -1,4 +1,4 @@
-﻿namespace SphaeraJsonRpc.Protocol
+﻿namespace SphaeraJsonRpc.Protocol.Enums
 {
     public enum EnumTypeMessage
     {

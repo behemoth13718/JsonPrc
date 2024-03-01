@@ -1,24 +1,41 @@
 using System;
 using System.Linq;
+using System.Net;
 using SphaeraJsonRpc.Protocol.ModelMessage.RequestMessage;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SphaeraJsonRpc.Protocol.ErrorMessage;
+using SphaeraJsonRpc.Attributes;
+using SphaeraJsonRpc.Helpers;
+using SphaeraJsonRpc.Models;
+using SphaeraJsonRpc.Protocol.Enums;
 using SphaeraJsonRpc.Protocol.ModelMessage.ErrorMessage;
 
 namespace SphaeraJsonRpc.Extensions
 {
     public static class ExtentionsMethodInfo
     {
-        public static MethodInfo GetMethod(this object rpcServer, JsonRpcRequestServer request) =>
-            rpcServer.GetType()
-            .GetMethods()
-            .FirstOrDefault(x => string.Equals(x.Name, request.Method, StringComparison.CurrentCultureIgnoreCase));
+        public static MethodJsonRpcInfo GetMethod(this object rpcServer, JsonRpcRequestServer request)
+        {
+            foreach (var method in rpcServer.GetType().GetMethods())
+            {
+                var attribute = method.GetCustomAttribute<JsonRpcMethodAttribute>();
+                if (attribute != null && attribute.Name.Equals(request.Method))
+                    return new MethodJsonRpcInfo()
+                    {
+                        NameMethodLocal = method.Name,
+                        NameMethodContract = attribute.Name,
+                        MethodInfo = method
+                    };
+            }
+            return null;
+        }
 
-        public static async Task<object[]> HandlerParams(this MethodInfo method, JsonRpcRequestServer request, HttpContext context)
+        public static bool IsVersionSuported(this JsonRpcRequestServer request) => request.Version.Equals(Constants.Version); 
+
+        public static object[] ReadMethodParams(this MethodInfo method, JsonRpcRequestServer request, HttpContext context)
         {
             // Получаем параметры метода               
             var methodParams = method.GetParameters();
@@ -26,66 +43,39 @@ namespace SphaeraJsonRpc.Extensions
             // Создаем массив с параметрами для передачи их в метод
             var inputParams = new object[methodParams.Length];
                 
-            //Если данные представлены в виде массива данных
+            //Когда параметры пустые или отсутствуют в сообщении
             if (@params.IsEmptyParams())
             {
-                if (methodParams.Length > 1)
+                // Если в методе есть параметры а в сообщении нет, то ошибка 
+                if (methodParams.Length >= 1)
                 {
-                    context.Response.StatusCode = 400;
-                    context.Response.ContentType = "application/json";
-                    await context.Response.WriteAsync(JsonConvert.SerializeObject(new JsonRpcError()
-                    {
-                        RequestId = request.RequestId,
-                        Error = new ErrorDetail()
-                        {
-                            Code = JsonRpcErrorCode.MethodNotFound,
-                            Message = "Method not found."
-                        }
-                    }));
-
-                    return inputParams = new object[0];
+                    context.ErrorWriteContext(request, EnumJsonRpcErrorCode.InvalidParams);
+                    return null;
                 }
+                return inputParams;
             }
-            else if (@params is JArray jArray && methodParams.Length == 1)
+            else switch (@params)
             {
-                var paramSingleInfo = methodParams[0];
-                var paramType = paramSingleInfo.ParameterType;
-
-                if (paramSingleInfo.IsCollection())
+                // Когда параметр в методе один
+                case JArray jArray when methodParams.Length == 1:
                 {
-                    var parse = jArray.ToObject(paramType);
-                    inputParams[0] = parse;
+                    ParamsHelper.ReadOneParam(methodParams, jArray, inputParams);
+                    break;
                 }
-
-                inputParams[0] = jArray[0].ToObject(paramType);
-            }
-            else if (@params is JArray arrayMany && methodParams.Length > 1)
-            {
-                for (int i = 0; i < methodParams.Length; i++)
-                    inputParams[i] = arrayMany[i].ToObject(methodParams[i].ParameterType);
-            }
-            else if(@params is JObject obj)
+                // Когда параметров в методе больше чем один
+                case JArray arrayMany when methodParams.Length > 1:
                 {
                     for (int i = 0; i < methodParams.Length; i++)
-                        if (obj.TryGetValue(methodParams[i].Name, out JToken value))
-                            inputParams[i] = value.ToObject(methodParams[i].ParameterType);
-
-                    if (inputParams.Any(x => x == null))
-                    {
-                        context.Response.StatusCode = 400;
-                        context.Response.ContentType = "application/json";
-                        await context.Response.WriteAsync(JsonConvert.SerializeObject(new JsonRpcError()
-                        {
-                            RequestId = request.RequestId,
-                            Error = new ErrorDetail()
-                            {
-                                Code = JsonRpcErrorCode.MethodNotFound,
-                                Message = "Method not found."
-                            }
-                        }));
-                        inputParams = null;
-                    }
+                        inputParams[i] = arrayMany[i].ToObject(methodParams[i].ParameterType);
+                    break;
                 }
+                // Если параметры в виде объекта
+                case JObject obj:
+                {
+                    if (ParamsHelper.ReadObjectParam(request, context, methodParams, obj, inputParams, out var empty)) return empty;
+                    break;
+                }
+            }
             return inputParams;
         }
     }

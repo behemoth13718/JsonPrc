@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SphaeraJsonRpc.Protocol.Enums;
 
 namespace SphaeraJsonRpc.Protocol.ModelMessage
 {
