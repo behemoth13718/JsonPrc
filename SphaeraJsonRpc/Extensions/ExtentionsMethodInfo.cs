@@ -1,23 +1,18 @@
 using System;
-using System.Linq;
-using System.Net;
-using SphaeraJsonRpc.Protocol.ModelMessage.RequestMessage;
 using System.Reflection;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SphaeraJsonRpc.Attributes;
 using SphaeraJsonRpc.Helpers;
 using SphaeraJsonRpc.Models;
 using SphaeraJsonRpc.Protocol.Enums;
-using SphaeraJsonRpc.Protocol.ModelMessage.ErrorMessage;
+using SphaeraJsonRpc.Protocol.ModelMessage;
 
 namespace SphaeraJsonRpc.Extensions
 {
     public static class ExtentionsMethodInfo
     {
-        public static MethodJsonRpcInfo GetMethod(this object rpcServer, JsonRpcRequestServer request)
+        public static MethodJsonRpcInfo GetMethod(this object rpcServer, JsonRpcRequest request)
         {
             foreach (var method in rpcServer.GetType().GetMethods())
             {
@@ -32,10 +27,8 @@ namespace SphaeraJsonRpc.Extensions
             }
             return null;
         }
-
-        public static bool IsVersionSuported(this JsonRpcRequestServer request) => request.Version.Equals(Constants.Version); 
-
-        public static object[] ReadMethodParams(this MethodInfo method, JsonRpcRequestServer request, HttpContext context)
+        public static bool IsVersionSuported(this JsonRpcRequest request) => request.Version.Equals(Constants.Version); 
+        public static object[] ReadMethodParams(this MethodInfo method, JsonRpcRequest request, HttpContext context)
         {
             // Получаем параметры метода               
             var methodParams = method.GetParameters();
@@ -69,10 +62,16 @@ namespace SphaeraJsonRpc.Extensions
                         inputParams[i] = arrayMany[i].ToObject(methodParams[i].ParameterType);
                     break;
                 }
+                // Если параметры в виде объекта и один параметр
+                case JObject obj when methodParams.Length == 1:
+                {
+                    ParamsHelper.ReadOneParam(methodParams, obj, inputParams);
+                    break;
+                }
                 // Если параметры в виде объекта
                 case JObject obj:
                 {
-                    if (ParamsHelper.ReadObjectParam(request, context, methodParams, obj, inputParams, out var empty)) return empty;
+                    ParamsHelper.ReadObjectParam(request, context, methodParams, obj, inputParams);
                     break;
                 }
             }

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,7 +8,7 @@ using Newtonsoft.Json;
 using SphaeraJsonRpc.Exceptions;
 using SphaeraJsonRpc.Extensions;
 using SphaeraJsonRpc.Protocol.Enums;
-using SphaeraJsonRpc.Protocol.ModelMessage.RequestMessage;
+using SphaeraJsonRpc.Protocol.ModelMessage;
 
 namespace SphaeraJsonRpc.Middlewares
 {
@@ -21,13 +22,15 @@ namespace SphaeraJsonRpc.Middlewares
             if (context.Request.Path.HasValue && string.Equals(context.Request.Path.Value, _urlPath,
                     StringComparison.InvariantCultureIgnoreCase))
             {
-                JsonRpcRequestServer request = null;
+                JsonRpcRequest request = null;
+                
+                context.Response.ContentType = Constants.MediaType.ApplicationJson;
                 try
                 {
                     using var reader = new StreamReader(context.Request.Body);
                     var reciveMessage = await reader.ReadToEndAsync();
                     var serviceProvider = context.RequestServices;
-                    request = JsonConvert.DeserializeObject<JsonRpcRequestServer>(reciveMessage);
+                    request = JsonConvert.DeserializeObject<JsonRpcRequest>(reciveMessage);
                     var requestScopedService = ActivatorUtilities.CreateInstance<TService>(serviceProvider);
 
                     context.HandlerRequest(request, requestScopedService);

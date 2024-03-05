@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
@@ -12,10 +11,10 @@ namespace SphaeraJsonRpc.Controllers
 {
     [ApiController]
     [Route("[Controller]")]
-    public class ErrorInfoControllerBase : ControllerBase
+    public class DocumentaionRpcServerController : ControllerBase
     {
-        [HttpGet]
-        public IActionResult Get()
+        [HttpGet("Error-info")]
+        public IActionResult ErrorInfo()
         {
 
             var listInfoDetail = typeof(EnumJsonRpcErrorCode)

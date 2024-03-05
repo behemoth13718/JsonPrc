@@ -10,13 +10,12 @@ using SphaeraJsonRpc.Exceptions;
 using SphaeraJsonRpc.Protocol.Enums;
 using SphaeraJsonRpc.Protocol.ModelMessage;
 using SphaeraJsonRpc.Protocol.ModelMessage.ErrorMessage;
-using SphaeraJsonRpc.Protocol.ModelMessage.RequestMessage;
 
 namespace SphaeraJsonRpc.Extensions
 {
     public static class ExtentionsRpcMessages
     {
-        public static void HandlerRequest(this HttpContext context,JsonRpcRequestServer request, object requestScopedService)
+        public static void HandlerRequest(this HttpContext context,JsonRpcRequest request, object requestScopedService)
         {
             if (!request.IsVersionSuported())
             {
@@ -37,13 +36,47 @@ namespace SphaeraJsonRpc.Extensions
                 try
                 {
                     var methodResult = method.MethodInfo.Invoke(requestScopedService, inputParams);
-                    context.SuccessWriteContext(request, HttpStatusCode.OK, Constants.MediaType.ApplicationJson, methodResult);
+                    context.SuccessWriteContext(request, methodResult);
                 }
                 catch (Exception e)
                 {
                     throw new JsonRpcCallMethodExeption("Ошибка при обработке данных в методе", method.NameMethodContract, e?.InnerException?.Message ?? e.Message);
                 }
             }
+        }
+        
+        /// <summary>
+        /// Метод расширения для получения результата из сообщения типа JsonRpcResult. Необходимо передать тип данных,
+        /// в который нужно преобразовать полученные данные. Если данные не преобразуется, вернётся значение по умолчанию для переданного типа TResult
+        /// </summary>
+        /// <param name="jsonRpcMessage"></param>
+        /// <typeparam name="TResult"></typeparam>
+        /// <returns></returns>
+        public static TResult TryReadJsonRpcResultMessage<TResult>(this JsonRpcResult jsonRpcMessage)
+        {
+            try
+            {
+                object resultData = jsonRpcMessage.Result;
+                if (resultData.IsEmptyParams())
+                    return default;
+
+                switch (resultData)
+                {
+                    case JObject obj:
+                        return (obj).ToObject<TResult>();
+                    case JArray jArray:
+                        return (jArray).ToObject<TResult>();
+                    case TResult result:
+                        return result;
+                    default:
+                        return default;
+                }
+            }
+            catch (Exception e)
+            {
+                return default;
+            }
+            
         }
 
         public static bool IsEmptyParams(this object @params) => @params switch
@@ -69,16 +102,13 @@ namespace SphaeraJsonRpc.Extensions
 
         public static async void ErrorWriteContext(
             this HttpContext context, 
-            JsonRpcRequestServer request,
+            JsonRpcRequest request,
             EnumJsonRpcErrorCode enumJsonRpcErrorCode,
             object data = null)
         {
-            context.Response.StatusCode = HttpStatusCode.BadRequest.GetCode();
-            context.Response.ContentType = Constants.MediaType.ApplicationJson;
-            
             var responseMessage = new JsonRpcError()
             {
-                RequestId = request?.RequestId ?? 0,
+                RequestId = request?.RequestId ?? new RequestId(0),
                 Error = new ErrorDetail()
                 {
                     Code = enumJsonRpcErrorCode,
@@ -87,25 +117,21 @@ namespace SphaeraJsonRpc.Extensions
             };
             if (data != null)
                 responseMessage.Error.Data = data;
-            
+            context.Response.StatusCode = HttpStatusCode.BadRequest.GetCode();
             await context.Response.WriteAsync(JsonConvert.SerializeObject(responseMessage));
         }
-        
-        public static async void SuccessWriteContext(
+
+        private static async void SuccessWriteContext(
             this HttpContext context, 
-            JsonRpcRequestServer request,
-            HttpStatusCode statusCode,
-            string mediaType,
+            JsonRpcRequest request,
             object resultActionData)
         {
-            context.Response.StatusCode = statusCode.GetCode();
-            context.Response.ContentType = mediaType;
-            
             var response = new JsonRpcResult()
             {
                 RequestId = request.RequestId,
                 Result = resultActionData
             };
+            context.Response.StatusCode = HttpStatusCode.OK.GetCode();
             await context.Response.WriteAsync(JsonConvert.SerializeObject(response));
         }
     }

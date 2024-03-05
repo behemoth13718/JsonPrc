@@ -20,5 +20,14 @@ namespace SphaeraJsonRpc.Protocol.ModelMessage
         public override EnumTypeMessage TypeMessage => EnumTypeMessage.Succsess;
 
         public override List<T> GetPayload<T>() => ((JArray)Result).ToObject<List<T>>();
+        
+        public override string ToString()
+        {
+            return new JObject
+            {
+                new JProperty("result", Result),
+                new JProperty("id", RequestId),
+            }.ToString(Newtonsoft.Json.Formatting.None);
+        }
     }
 }
