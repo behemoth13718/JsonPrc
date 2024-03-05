@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SphaeraJsonRpc.Exceptions;
 using SphaeraJsonRpc.Options;
 using SphaeraJsonRpc.Protocol.Enums;
@@ -37,13 +35,24 @@ namespace SphaeraJsonRpc.Protocol
 
         private async Task<JsonRpcResult> HandlerMessage(byte[] requestBody, JsonRpcRequest jsonRpcRequest)
         {
-            var response = await _httpClient.PostAsync(_urlService, new ByteArrayContent(requestBody));
-            var responseBody = await response.Content.ReadAsStringAsync();
+            try
+            {
+                var response = await _httpClient.PostAsync(_urlService, new ByteArrayContent(requestBody));
+                var responseBody = await response.Content.ReadAsStringAsync();
 
-            if (!response.IsSuccessStatusCode) 
-                TryGetErrorMessage(responseBody, jsonRpcRequest);
+                if (!response.IsSuccessStatusCode) 
+                    TryGetErrorMessage(responseBody, jsonRpcRequest);
 
-            return TryGetResultMessage(responseBody, jsonRpcRequest);
+                return TryGetResultMessage(responseBody, jsonRpcRequest);
+            }
+            catch(JsonRpcHandlerMessageExeption e)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Error sending request: {e.Message}", e?.InnerException);
+            }
         }
         private void TryGetErrorMessage(string responseBody, JsonRpcRequest jsonRpcRequest)
         {
@@ -52,21 +61,25 @@ namespace SphaeraJsonRpc.Protocol
                 var rpcError = JsonConvert.DeserializeObject<JsonRpcError>(responseBody);
                 throw new JsonRpcHandlerMessageExeption("Error parse body by error", responseBody, rpcError);
             }
+            catch(JsonRpcHandlerMessageExeption e)
+            {
+                throw;
+            }
             catch (Exception e)
             {
                 throw new JsonRpcHandlerMessageExeption(
-                    "Error parse body by error", 
-                    responseBody, 
+                    "Parse body by error",
+                    responseBody,
                     new JsonRpcError()
                     {
-                        RequestId = jsonRpcRequest.RequestId, 
-                        Version = jsonRpcRequest.Version, 
+                        Id = jsonRpcRequest.RequestId,
+                        Version = jsonRpcRequest.Version,
                         Error = new ErrorDetail()
                         {
                             Code = EnumJsonRpcErrorCode.ParseError,
                             Message = $"Error parse message: {responseBody}"
                         }
-                    }, 
+                    },
                     messageError: e);
             }
         }
@@ -83,7 +96,7 @@ namespace SphaeraJsonRpc.Protocol
                     responseBody, 
                     new JsonRpcError()
                     {
-                        RequestId = jsonRpcRequest.RequestId, 
+                        Id = jsonRpcRequest.RequestId, 
                         Version = jsonRpcRequest.Version, 
                         Error = new ErrorDetail()
                         {

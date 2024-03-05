@@ -17,7 +17,7 @@ namespace SphaeraJsonRpc.Exceptions
         {
             ErrorCode = errorCode;
             ResponseBody = responseBody;
-            MessageError = messageError?.InnerException?.Message ?? messageError.Message;
+            MessageError = messageError?.InnerException?.Message ?? messageError?.Message;
             JsonRpcError = jsonRpcError;
         }
     }

@@ -108,7 +108,7 @@ namespace SphaeraJsonRpc.Extensions
         {
             var responseMessage = new JsonRpcError()
             {
-                RequestId = request?.RequestId ?? new RequestId(0),
+                Id = request?.RequestId ?? new RequestId(0),
                 Error = new ErrorDetail()
                 {
                     Code = enumJsonRpcErrorCode,

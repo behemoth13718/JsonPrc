@@ -9,7 +9,7 @@ namespace SphaeraJsonRpc.Protocol.ModelMessage
         [JsonProperty("jsonrpc", Required = Required.Always, Order = 0)]
         public string Version { get; set; } = "2.0";
 
+        [JsonIgnore]
         public abstract EnumTypeMessage TypeMessage { get; }
-        public virtual List<T> GetPayload<T>() => new List<T>();
     }
 }

@@ -37,18 +37,18 @@ namespace JsonRpcApp.Controllers
             {
                 var obj = new WeatherForecast() { Date = DateTime.Now, Summary = "dfgdfgdf", TemperatureC = 456465 };
                 res = await _jsonRpc
-                    .SendMessageAsync("get-temperature", obj, 45645);
+                    .SendMessageAsync("get-temperature1", obj, 45645);
                 
                 
                 return Ok(res.TryReadJsonRpcResultMessage<long>());
             }
             catch (JsonRpcHandlerMessageExeption e)
             {
-                return BadRequest(e.JsonRpcError);
+                return BadRequest(e.JsonRpcError.ToString());
             }
             catch (Exception e)
             {
-                return BadRequest(e);
+                return BadRequest(e.Message);
             }
         }
     }

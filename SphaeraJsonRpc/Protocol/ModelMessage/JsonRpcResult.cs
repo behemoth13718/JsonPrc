@@ -15,12 +15,8 @@ namespace SphaeraJsonRpc.Protocol.ModelMessage
         [JsonProperty("id", Required = Required.Always, Order = 2)]
         public object RequestId { get; set; }
 
-
         [JsonIgnore]
         public override EnumTypeMessage TypeMessage => EnumTypeMessage.Succsess;
-
-        public override List<T> GetPayload<T>() => ((JArray)Result).ToObject<List<T>>();
-        
         public override string ToString()
         {
             return new JObject

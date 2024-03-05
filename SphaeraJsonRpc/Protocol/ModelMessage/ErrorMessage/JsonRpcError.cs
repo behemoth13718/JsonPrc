@@ -10,7 +10,7 @@ namespace SphaeraJsonRpc.Protocol.ModelMessage.ErrorMessage
         public ErrorDetail Error { get; set; }
 
         [JsonProperty("id", Required = Required.Always, Order = 2)]
-        public object RequestId { get; set; }
+        public object Id { get; set; }
         
         [JsonIgnore]
         public override EnumTypeMessage TypeMessage => EnumTypeMessage.Error;
@@ -18,7 +18,7 @@ namespace SphaeraJsonRpc.Protocol.ModelMessage.ErrorMessage
         {
             return new JObject
             {
-                new JProperty("id", RequestId),
+                new JProperty("id", Id),
                 new JProperty("error", new JObject
                 {
                     new JProperty("code", this.Error?.Code),
